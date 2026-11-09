@@ -25,6 +25,8 @@ local WINDOW = "body"
 local POLL_MS = 150
 local STEP = 0.05
 local DEFAULT_OPACITY = 0.30
+local DEFAULT_BARS = 0.35
+local DEFAULT_COMPOSER = 0.35
 
 -- Where the settings block opens: `beside` splits the pane it was asked from,
 -- so the window you are restyling stays in view while you change it. The other
@@ -100,6 +102,34 @@ local CLEAR_FILLS = [[
 	background-color: transparent !important;
 }
 ]]
+
+-- The window's own surfaces darkened over the picture, from the Surfaces
+-- page: the tab bar and status line, and omp's input box, which also
+-- gets a drop shadow and a top highlight so it stands off the picture. The
+-- box is the dock's inner column, the one carrying the rounded frame; the
+-- outer one is wider by the dock's padding. Its selector outweighs
+-- CLEAR_FILLS' `.sf-col`, which made it transparent.
+local function surfaces(): string
+	local parts: { string } = {}
+	local bars = clamp(knum("bars", DEFAULT_BARS), 0, 1)
+	if bars > 0 then
+		table.insert(parts, string.format([[
+nav#tabbar, footer#statusline {
+	background-color: rgb(0 0 0 / %.3f) !important;
+}
+]], bars))
+	end
+	local box = clamp(knum("composer", DEFAULT_COMPOSER), 0, 1)
+	if box > 0 then
+		table.insert(parts, string.format([[
+.sf-dock.sf-chat-reader > .sf-col > .sf-col {
+	background-color: rgb(0 0 0 / %.3f) !important;
+	box-shadow: 0 8px 24px rgb(0 0 0 / %.3f), inset 0 1px 0 rgb(255 255 255 / 0.08) !important;
+}
+]], box, box * 0.9))
+	end
+	return table.concat(parts)
+end
 
 -- The picture is a layer, not body's background: `body::before`, fixed over
 -- the window, above body's own background and under all of body's children
@@ -242,7 +272,7 @@ local function animated_sheet(
 		animation: none;
 	}
 }
-%s]], table.concat(frames, "\n"), LAYER, CLEAR_FILLS)
+%s]], table.concat(frames, "\n"), LAYER, CLEAR_FILLS .. surfaces())
 end
 
 local function sheet(): string
@@ -282,7 +312,7 @@ local function sheet(): string
 	background-image: url("%s");
 	background-size: %s;
 	background-position: center;
-	background-repeat: %s;]], picture, size, repeat_rule)) .. CLEAR_FILLS
+	background-repeat: %s;]], picture, size, repeat_rule)) .. CLEAR_FILLS .. surfaces()
 end
 
 -- The sheet is installed when `render_rev` moves, so a new picture is a new

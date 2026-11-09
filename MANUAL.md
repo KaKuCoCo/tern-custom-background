@@ -33,8 +33,9 @@ plugin reload` does it straight away (see the engine's stamp below).
 - **Wallpaper: settings** in the palette (or the `plugin.wallpaper.settings`
   action) opens the settings block **beside the pane you asked from**, so the
   window you are restyling stays in view while you change it. It is a full
-  page: an Image page, a Dither page, a Fit and opacity page, and a Status
-  page that shows the render facts and a live preview of the dithered result.
+  page: an Image page, a Dither page, a Fit and opacity page, a Surfaces
+  page, and a Status page that shows the render facts and a live preview of
+  the dithered result.
   The placement is the `PLACEMENT` constant at the top of `window.luau`:
   `beside` (split), `below`, `tab`, `replace` or `preview`.
 - **Closing the block.** The page's `Close` button (the one with the `esc`
@@ -94,6 +95,8 @@ plugin reload` does it straight away (see the engine's stamp below).
 | Fit | `contain` (fit to screen), `cover` (fill the screen), `stretch` (stretch to screen), `tile` | `cover` |
 | Opacity | 0–100% | 30% |
 | Hard pixel edges | on/off (`image-rendering: pixelated`) | off |
+| Header and footer | 0–100%, black over the tab bar and status line | 35% |
+| Input box | 0–100%, black fill and drop shadow on omp's input box | 35% |
 
 The Kernel, Matrix and Block size rows are disabled while the method that does
 not read them is running, and so are Character size, Ramp and Characters while
@@ -245,6 +248,27 @@ picture away with it.
 
 With the picture off, the sheet is one `body::before { content: none }` rule
 and nothing else, so the app gets every fill back.
+
+### Surfaces
+
+The picture is the background of everything, which leaves the tab bar, the
+status line and omp's input box flat against it. The Surfaces page darkens
+them by their own amounts, as display settings: changing one re-applies the
+sheet and never re-dithers. Both are part of the picture's sheet, so with the
+wallpaper off they go too.
+
+- **Header and footer** puts `rgb(0 0 0 / x)` on `nav#tabbar` and
+  `footer#statusline`.
+- **Input box** puts the same fill on omp's input box, with a drop shadow of
+  0.9 times that alpha and a one-pixel light line along its top edge, so the
+  box reads as raised off the picture. The box is
+  `.sf-dock.sf-chat-reader > .sf-col > .sf-col`: the dock's inner column,
+  which carries the rounded frame. The outer column is wider by the dock's
+  padding, and filling it paints past the frame. The selector also outweighs
+  the cleared `.sf-col` fill above.
+
+These are Tern's own class names, not an API: a Tern release that renames
+them leaves the surfaces undarkened, and nothing else.
 
 ### Renders never go in the plugin folder
 
