@@ -1299,7 +1299,7 @@ local function rows_for(state: State): { { [string]: any } }
 			{
 				id = "opacity",
 				label = "Opacity",
-				hint = "The rest is a black scrim, so the window's own colours stay readable.",
+				hint = "The rest is the window behind it: glass, or the theme's own colour.",
 				control = { k = "number", value = math.floor(s.opacity * 100 + 0.5), min = 0, max = 100, step = 5, unit = "%" },
 			},
 			{

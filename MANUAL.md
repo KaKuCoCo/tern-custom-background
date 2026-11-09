@@ -6,7 +6,8 @@ The picture is rendered to a 1-bit (or small-palette) PNG by a small native
 helper and painted under the whole window by a plugin style sheet, with the
 fills the app draws on top of it cleared, so the terminal grid, sidebar, tab
 bar and status line stay readable: the theme's colours are left alone and the
-picture is scrimmed, not the other way round.
+picture is laid over the window at the chosen opacity, so a glass window's
+blurred desktop still shows through it.
 
 ## Install
 
@@ -104,8 +105,9 @@ plugin first loads.
 
 ```
 window.luau  ── the style sheet: paints the picture once on the window itself
-                (body), with a black scrim whose alpha is 1 - opacity, and
-                clears the fills the app draws over it. Polls render_rev.
+                (a body::before layer at the chosen opacity, under all of
+                body's children), and clears the fills the app draws over
+                it. Polls render_rev.
                 With an animated render it paints one cell of the grid at a
                 time instead, driven by @keyframes built from the delays.
 host.luau    ── the render loop and the settings block. Polls rev, runs
@@ -224,11 +226,25 @@ all take `--code-bg`, more cards take `--card`, and two containers (the
 composer, a note card) carry fills no token reaches. So the sheet clears
 those four tokens and the two container classes, and the picture becomes the
 window's one background. The app's own colours stay in its text, borders and
-icons, which is what keeps it readable — the picture is scrimmed, not the
-other way round.
+icons, which is what keeps it readable.
 
-With the picture off, the sheet is one `background-image: none` rule and
-nothing else, so the app gets every fill back.
+### The picture is a layer, not a background
+
+The picture is drawn on `body::before`: fixed over the window, `z-index: -1`
+inside the stacking context `body` opens, so it sits over body's own
+background and under everything body holds. The Opacity setting is that
+layer's `opacity`, so the rest of each pixel is whatever is behind the
+picture: the theme's page colour on Solid, the blurred desktop on Liquid Glass
+and Clear.
+
+It used to be body's own background under a black scrim of 1 - opacity. That
+made the picture opaque, so a glass window showed no glass at all with the
+wallpaper on; and Tern's glass material clears body's background
+(`html.glass body { background: transparent }`), which took a background
+picture away with it.
+
+With the picture off, the sheet is one `body::before { content: none }` rule
+and nothing else, so the app gets every fill back.
 
 ### Renders never go in the plugin folder
 
