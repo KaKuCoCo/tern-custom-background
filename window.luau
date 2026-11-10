@@ -101,14 +101,11 @@ local CLEAR_FILLS = [[
 .sf-col, .sf-card {
 	background-color: transparent !important;
 }
-/* A glimpse overlays other panes, so it must hide their text. */
-.tn-pane.glimpse {
-	background-color: var(--page) !important;
-}
-/* The Git file surface overlays the commit graph. An opaque fill hid the
-   picture there; a translucent page colour over a blurred backdrop keeps the
-   picture and blurs the graph past reading. */
-.gb-surface {
+/* A glimpse (the file preview card) and the Git file surface overlay other
+   panes' text. An opaque fill hid the picture there; a translucent page
+   colour over a blurred backdrop keeps the picture and blurs what is under
+   it past reading. */
+.tn-pane.glimpse, .gb-surface {
 	background-color: color-mix(in srgb, var(--page) 65%, transparent) !important;
 	backdrop-filter: blur(24px) !important;
 }
