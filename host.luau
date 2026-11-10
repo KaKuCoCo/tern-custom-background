@@ -668,6 +668,18 @@ local function publish_animation(anim: { [string]: any }?)
 	end
 end
 
+-- A failed render leaves no signature. The picture that is up stays up, but
+-- the next `rev` renders again instead of taking that picture as current -
+-- and the next `rev` is what the window half sends once it has built a
+-- missing engine. A reinstall is the usual case: it removes the engine's
+-- stamp, which moves the signature, so a render runs before the engine is
+-- back; once it is, the signature matches the old one again and, kept, would
+-- leave the failure on the Status page over a picture that never re-rendered.
+local function render_failed(why: string)
+	note("render failed: " .. why)
+	tern.kv.set("sig", nil)
+end
+
 local function apply_render(rev: number, s: { [string]: any })
 	inflight = true
 	local out = render_path(next_render())
@@ -716,7 +728,7 @@ local function apply_render(rev: number, s: { [string]: any })
 				-- The candidate is no use to anyone, so it goes; the renders
 				-- that are up stay, and `prune` is not run here because it
 				-- keeps the newest four and would be protecting this file.
-				note("render failed: cannot read " .. out)
+				render_failed("cannot read " .. out)
 				pcall(tern.fs.remove, out)
 			end
 		else
@@ -724,7 +736,7 @@ local function apply_render(rev: number, s: { [string]: any })
 			if r.timed_out then
 				why = "timed out"
 			end
-			note("render failed: " .. why)
+			render_failed(why)
 		end
 		tern.kv.set("render_rev", knum("render_rev", 0) + 1)
 		inflight = false
@@ -732,7 +744,7 @@ local function apply_render(rev: number, s: { [string]: any })
 	end)
 
 	if not ok then
-		note("render failed: " .. tostring(err))
+		render_failed(tostring(err))
 		inflight = false
 		seen = rev
 	end
