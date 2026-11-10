@@ -105,6 +105,10 @@ local CLEAR_FILLS = [[
 .tn-pane.glimpse {
 	background-color: var(--page) !important;
 }
+/* The Git file surface overlays the commit graph. */
+.gb-surface {
+	background-color: var(--page) !important;
+}
 ]]
 
 -- The window's own surfaces darkened over the picture, from the Surfaces

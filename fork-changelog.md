@@ -1,6 +1,6 @@
 # Fork 變更紀錄
 
-上游為 `naraaalt/tern-custom-background`。以下紀錄 fork 的 `glass-layer` 分支及 `main` 分支相對於共同基準的改動。日期為 Git 作者日期。
+上游為 `naraaalt/tern-custom-background`。以下紀錄 fork 的 `main` 分支相對於上游的改動。日期為 Git 作者日期。
 
 ## 2026-11-10
 
@@ -13,3 +13,5 @@
   - 設定變更只重新套用樣式，不重新繪製圖片。
 - 為浮動預覽加入主題背景。
   - 避免透明填色讓底下的 pane 文字穿透編輯器。
+- 為 Git 檔案面板加入主題背景。
+  - 檔案面板疊在 commit graph 上，透明填色會讓底下的線圖穿透。
