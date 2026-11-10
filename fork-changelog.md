@@ -1,8 +1,8 @@
 # Fork 變更紀錄
 
-上游為 `naraaalt/tern-custom-background`。GitHub 上游 `main` 與 fork 的 `main` 都位於 `dbd2f755`，因此 fork 的 `main` 目前沒有上游之外的提交。以下紀錄 fork 的 `glass-layer` 分支相對於該共同基準的提交；這些提交尚未合入 fork 的 `main`。日期為 Git 作者日期。
+上游為 `naraaalt/tern-custom-background`，共同基準為 `dbd2f755`。以下紀錄 fork 的 `glass-layer` 分支及 `main` 分支相對於該基準的改動。日期為 Git 作者日期。
 
 - 2026-11-10 `c7c3ce2a`：將圖片改為 `body::before` 透明圖層，並調整動畫、停用行為與說明。原本 `body` 背景會被 Tern 的玻璃材質規則清除，黑色遮罩也使桌面無法透出。
 - 2026-11-10 `fbff407e`：新增 Surfaces 設定，可分別調暗標籤列與狀態列，以及 omp 輸入框，並為輸入框加入陰影和頂部亮線。這些區域原本直接疊在圖片上；設定變更只重新套用樣式，不重新繪製圖片。
 
-- 2026-11-10（待提交）：為浮動預覽加入主題背景，避免透明填色讓底下的 pane 文字穿透編輯器。
+- 2026-11-10 `bb4e42f`：為浮動預覽加入主題背景，避免透明填色讓底下的 pane 文字穿透編輯器。
