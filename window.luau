@@ -99,6 +99,10 @@ local CLEAR_FILLS = [[
 .sf-col, .sf-card {
 	background-color: transparent !important;
 }
+/* A glimpse overlays other panes, so it must hide their text. */
+.tn-pane.glimpse {
+	background-color: var(--page) !important;
+}
 ]]
 
 -- --- the animation ----------------------------------------------------------
