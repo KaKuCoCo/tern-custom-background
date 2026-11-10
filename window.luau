@@ -25,6 +25,8 @@ local WINDOW = "body"
 local POLL_MS = 150
 local STEP = 0.05
 local DEFAULT_OPACITY = 0.30
+local DEFAULT_BARS = 0.35
+local DEFAULT_COMPOSER = 0.35
 
 -- Where the settings block opens: `beside` splits the pane it was asked from,
 -- so the window you are restyling stays in view while you change it. The other
@@ -105,6 +107,63 @@ local CLEAR_FILLS = [[
 }
 ]]
 
+-- The window's own surfaces darkened over the picture, from the Surfaces
+-- page: the tab bar and status line, and omp's input box, which also
+-- gets a drop shadow and a top highlight so it stands off the picture. The
+-- box is the dock's inner column, the one carrying the rounded frame; the
+-- outer one is wider by the dock's padding. Its selector outweighs
+-- CLEAR_FILLS' `.sf-col`, which made it transparent.
+local function surfaces(): string
+	local parts: { string } = {}
+	local bars = clamp(knum("bars", DEFAULT_BARS), 0, 1)
+	if bars > 0 then
+		table.insert(parts, string.format([[
+nav#tabbar, footer#statusline {
+	background-color: rgb(0 0 0 / %.3f) !important;
+}
+]], bars))
+	end
+	local box = clamp(knum("composer", DEFAULT_COMPOSER), 0, 1)
+	if box > 0 then
+		table.insert(parts, string.format([[
+.sf-dock.sf-chat-reader > .sf-col > .sf-col {
+	background-color: rgb(0 0 0 / %.3f) !important;
+	box-shadow: 0 8px 24px rgb(0 0 0 / %.3f), inset 0 1px 0 rgb(255 255 255 / 0.08) !important;
+}
+]], box, box * 0.9))
+	end
+	return table.concat(parts)
+end
+
+-- The picture is a layer, not body's background: `body::before`, fixed over
+-- the window, above body's own background and under all of body's children
+-- (`z-index: -1` inside the stacking context body opens). Its `opacity` is the
+-- knob, so what shows through the rest is whatever is behind the picture: the
+-- theme's page colour on Solid, the blurred desktop on Liquid Glass and Clear.
+-- The picture used to be body's background under a black scrim of
+-- 1 - opacity, which made it opaque and hid the glass completely.
+local LAYER = WINDOW .. "::before"
+
+-- body's stacking context and the layer's box; `paint` is the layer's
+-- background declarations, one tab-indented line each.
+local function layer(opacity: string, pixels: string, paint: string): string
+	return string.format([[
+%s {
+	position: relative;
+	z-index: 0;
+}
+%s {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	opacity: %s;%s
+%s
+}
+]], WINDOW, LAYER, opacity, pixels, paint)
+end
+
 -- --- the animation ----------------------------------------------------------
 
 -- The frames of the animation that is up, or nil for a still. The host half
@@ -164,7 +223,7 @@ end
 local function animated_sheet(
 	anim: { frames: number, cols: number, rows: number, cw: number, ch: number, delays: { number } },
 	picture: string,
-	scrim: string,
+	opacity: string,
 	pixels: string
 ): string
 	local total = 0
@@ -196,18 +255,19 @@ local function animated_sheet(
 		end
 		local col = (i - 1) % anim.cols
 		local row = math.floor((i - 1) / anim.cols)
-		table.insert(frames, string.format("\t%.3f%% { background-position: center, %s; }",
+		table.insert(frames, string.format("\t%.3f%% { background-position: %s; }",
 			pct, cell_position(cw, ch, col, row)))
 	end
 
-	return string.format([[
-%s {
-	background-image: linear-gradient(rgb(0 0 0 / %s), rgb(0 0 0 / %s)), url("%s");
-	background-size: 100%% 100%%, calc(%d * %s) calc(%d * %s);
-	background-position: center, %s;
-	background-repeat: no-repeat, no-repeat;%s
-	animation: wallpaper-frames %dms step-end infinite;
-}
+	local paint = string.format([[
+	background-image: url("%s");
+	background-size: calc(%d * %s) calc(%d * %s);
+	background-position: %s;
+	background-repeat: no-repeat;
+	animation: wallpaper-frames %dms step-end infinite;]], picture,
+		anim.cols, cw, anim.rows, ch, cell_position(cw, ch, 0, 0), total)
+
+	return layer(opacity, pixels, paint) .. string.format([[
 @keyframes wallpaper-frames {
 %s
 }
@@ -216,35 +276,30 @@ local function animated_sheet(
 		animation: none;
 	}
 }
-%s]], WINDOW, scrim, scrim, picture,
-		anim.cols, cw, anim.rows, ch,
-		cell_position(cw, ch, 0, 0), pixels, total,
-		table.concat(frames, "\n"), WINDOW, CLEAR_FILLS)
+%s]], table.concat(frames, "\n"), LAYER, CLEAR_FILLS .. surfaces())
 end
 
 local function sheet(): string
 	local picture = kstr("picture", "")
 	if picture == "" or not kbool("enabled", true) then
 		-- Not "" - an empty source is at best a no-op. This sheet replaces the
-		-- one that painted, so dropping the rule takes the picture away, leaves
-		-- the window its own background and gives the app its fills back.
-		return WINDOW .. " {\n\tbackground-image: none;\n}"
+		-- one that painted, so dropping the layer takes the picture away,
+		-- leaves the window its own background and gives the app its fills
+		-- back.
+		return LAYER .. " {\n\tcontent: none;\n}"
 	end
 
-	-- The knob is the wallpaper's opacity, so the scrim carries 1 - opacity:
-	-- at 100% the picture is untouched, at 0% it is a black sheet.
-	local scrim = string.format("%.3f", 1 - clamp(knum("opacity", DEFAULT_OPACITY), 0, 1))
+	local opacity = string.format("%.3f", clamp(knum("opacity", DEFAULT_OPACITY), 0, 1))
 
 	local pixels = if kbool("pixelated", false) then "\n\timage-rendering: pixelated;" else ""
 
 	local anim = animation()
 	if anim ~= nil then
-		return animated_sheet(anim, picture, scrim, pixels)
+		return animated_sheet(anim, picture, opacity, pixels)
 	end
 
-	-- The picture's size and repeat, by fit. The scrim is not part of the fit:
-	-- it always covers the whole surface, or a letterboxed picture would leave
-	-- its bars undimmed and the window's own colours would show through them.
+	-- The picture's size and repeat, by fit. With `contain` the bars beside
+	-- the picture are simply the window behind it, glass or page colour.
 	local fit = kstr("fit", "cover")
 	local size, repeat_rule
 	if fit == "contain" then
@@ -257,14 +312,11 @@ local function sheet(): string
 		size, repeat_rule = "cover", "no-repeat"
 	end
 
-	return string.format([[
-%s {
-	background-image: linear-gradient(rgb(0 0 0 / %s), rgb(0 0 0 / %s)), url("%s");
-	background-size: 100%% 100%%, %s;
-	background-position: center, center;
-	background-repeat: no-repeat, %s;%s
-}
-%s]], WINDOW, scrim, scrim, picture, size, repeat_rule, pixels, CLEAR_FILLS)
+	return layer(opacity, pixels, string.format([[
+	background-image: url("%s");
+	background-size: %s;
+	background-position: center;
+	background-repeat: %s;]], picture, size, repeat_rule)) .. CLEAR_FILLS .. surfaces()
 end
 
 -- The sheet is installed when `render_rev` moves, so a new picture is a new

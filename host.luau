@@ -84,6 +84,8 @@ local DEFAULTS = {
 	opacity = 0.30,
 	fit = "cover",
 	pixelated = false,
+	bars = 0.35,
+	composer = 0.35,
 	enabled = true,
 	claim = false,
 }
@@ -93,7 +95,7 @@ local KEYS = {
 	"pixelate", "smooth",
 	"palette", "colors", "extract", "extract_method", "scale", "cut",
 	"brightness", "contrast", "invert", "maxside", "animate", "frames",
-	"opacity", "fit", "pixelated", "enabled", "claim",
+	"opacity", "fit", "pixelated", "bars", "composer", "enabled", "claim",
 }
 
 -- The animation the render in hand came out as, written by the render loop
@@ -368,6 +370,8 @@ local function settings(): { [string]: any }
 	s.opacity = clamp(knum("opacity", DEFAULTS.opacity), 0, 1)
 	s.fit = one_of(kstr("fit", DEFAULTS.fit), FITS, DEFAULTS.fit)
 	s.pixelated = kbool("pixelated", DEFAULTS.pixelated)
+	s.bars = clamp(knum("bars", DEFAULTS.bars), 0, 1)
+	s.composer = clamp(knum("composer", DEFAULTS.composer), 0, 1)
 	s.enabled = kbool("enabled", DEFAULTS.enabled)
 	s.claim = kbool("claim", DEFAULTS.claim)
 	return s
@@ -1299,7 +1303,7 @@ local function rows_for(state: State): { { [string]: any } }
 			{
 				id = "opacity",
 				label = "Opacity",
-				hint = "The rest is a black scrim, so the window's own colours stay readable.",
+				hint = "The rest is the window behind it: glass, or the theme's own colour.",
 				control = { k = "number", value = math.floor(s.opacity * 100 + 0.5), min = 0, max = 100, step = 5, unit = "%" },
 			},
 			{
@@ -1313,6 +1317,29 @@ local function rows_for(state: State): { { [string]: any } }
 				label = "Reset the fit",
 				hint = "Back to filling the screen at 30%.",
 				control = { k = "action", act = "reset-look", label = "Reset" },
+			},
+		}
+	end
+
+	if ui_state(state).page == "surfaces" then
+		return {
+			{
+				id = "bars",
+				label = "Header and footer",
+				hint = "Darkens the tab bar and the status line over the picture.",
+				control = { k = "number", value = math.floor(s.bars * 100 + 0.5), min = 0, max = 100, step = 5, unit = "%" },
+			},
+			{
+				id = "composer",
+				label = "Input box",
+				hint = "Darkens omp's input box and lifts it off the picture with a shadow.",
+				control = { k = "number", value = math.floor(s.composer * 100 + 0.5), min = 0, max = 100, step = 5, unit = "%" },
+			},
+			{
+				id = "reset-surfaces",
+				label = "Reset the surfaces",
+				hint = "Back to 35% on both.",
+				control = { k = "action", act = "reset-surfaces", label = "Reset" },
 			},
 		}
 	end
@@ -1374,6 +1401,10 @@ local function apply_change(state: State, item: string, value: any)
 		s.contrast = clamp((n or 100) / 100, 0.1, 3)
 	elseif item == "opacity" then
 		s.opacity = clamp((n or 30) / 100, 0, 1)
+	elseif item == "bars" then
+		s.bars = clamp((n or 0) / 100, 0, 1)
+	elseif item == "composer" then
+		s.composer = clamp((n or 0) / 100, 0, 1)
 	else
 		return
 	end
@@ -1496,6 +1527,7 @@ local function build(state: State): { main: Node, dock: Node }
 		{ id = "dither", label = "Dither", group = "Wallpaper", icon = "wand" },
 		{ id = "tone", label = "Tone", group = "Wallpaper", icon = "sliders" },
 		{ id = "look", label = "Fit and opacity", group = "Wallpaper", icon = "eye" },
+		{ id = "surfaces", label = "Surfaces", group = "Wallpaper", icon = "moon" },
 		{ id = "status", label = "Status", group = "About", icon = "info" },
 	}
 
@@ -1718,6 +1750,13 @@ local block: BlockDef<State> = {
 				s.fit = DEFAULTS.fit
 				s.opacity = DEFAULTS.opacity
 				s.pixelated = DEFAULTS.pixelated
+				write_settings(s)
+				bump()
+				state.seen_rev = knum("rev", 0)
+			elseif act == "reset-surfaces" then
+				local s = state.s
+				s.bars = DEFAULTS.bars
+				s.composer = DEFAULTS.composer
 				write_settings(s)
 				bump()
 				state.seen_rev = knum("rev", 0)
