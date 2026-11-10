@@ -105,9 +105,12 @@ local CLEAR_FILLS = [[
 .tn-pane.glimpse {
 	background-color: var(--page) !important;
 }
-/* The Git file surface overlays the commit graph. */
+/* The Git file surface overlays the commit graph. An opaque fill hid the
+   picture there; a translucent page colour over a blurred backdrop keeps the
+   picture and blurs the graph past reading. */
 .gb-surface {
-	background-color: var(--page) !important;
+	background-color: color-mix(in srgb, var(--page) 65%, transparent) !important;
+	backdrop-filter: blur(24px) !important;
 }
 ]]
 
