@@ -315,15 +315,6 @@ plugin no other channel between its host and window halves:
 | `sig` | the render inputs that produced `render` |
 | `render_seq` | the number the next render's file gets |
 | `note` | the last render's one-line result, or why it failed |
-| `close_pane` | a pane id the settings block asked to close |
-
-`close_pane` is the one request that travels the other way. The host half owns
-the page but has no `cx.layout` — that belongs to the window half — so the
-block's Close button and Escape leave the pane id in the store and the window
-half's poll carries it out. `PaneInfo.pane` and the block's `cx.pane` are the
-same number, so the id names exactly one pane, and only the window actually
-showing it finds it among its own panes; a second window on the same session is
-left alone.
 
 `rev` and `render_rev` are split so a display-only change (opacity, fit,
 hard pixels, on/off) does not re-dither: the loop bumps `render_rev` alone and

@@ -45,9 +45,6 @@ local IMAGE_EXT = {
 
 local applied = -1
 local last_error: string? = nil
--- The last close request this window carried out, so a stale one in the kv
--- store is not acted on again after a reload.
-local handled_close: number? = nil
 
 local function kstr(key: string, fallback: string): string
 	local v = tern.kv.get(key)
@@ -356,28 +353,7 @@ local function sync(force: boolean)
 	end
 end
 
--- Carries out a close the settings block asked for. The host half has no
--- `cx.layout`, so it leaves the pane id in `close_pane` and this half, which
--- does, closes the pane. Only the window actually showing that pane finds it
--- among its own, so a second window on the same session is left alone.
-local function close_requested(cx: WindowCx?)
-	if cx == nil then
-		return
-	end
-	local want = tern.kv.get("close_pane")
-	if type(want) ~= "number" or want == handled_close then
-		return
-	end
-	handled_close = want
-	for _, p in ipairs(cx.session:panes()) do
-		if p.pane == want and p.block == BLOCK_KIND then
-			cx.layout:close(want)
-			return
-		end
-	end
-end
-
-local function tick(cx)
+local function tick()
 	-- Arm the next tick before anything else: an error in here must not end
 	-- the loop, or the wallpaper would stay off until the window restarts.
 	tern.timer(POLL_MS, tick)
@@ -386,7 +362,6 @@ local function tick(cx)
 		last_error = err
 		tern.log.warn("wallpaper: could not read the settings:", err)
 	end
-	pcall(close_requested, cx)
 end
 
 -- --- commands ---------------------------------------------------------------

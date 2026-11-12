@@ -606,12 +606,11 @@ local function note(text: string)
 	tern.kv.set("note", text)
 end
 
--- The host half has no way to close a pane - `cx.layout` belongs to the window
--- half - so a close leaves a request in the kv store and the window half's
--- poll carries it out. `PaneInfo.pane` is the same number as the block's
--- `cx.pane`, so the id in the request names exactly one pane.
+-- Ends the block, which closes its pane at once: a block whose program
+-- succeeds closes unless kept open. Going through the window half instead
+-- costs its poll interval plus a rewrite of the whole kv file.
 local function request_close(cx: BlockCx)
-	tern.kv.set("close_pane", cx.pane)
+	cx:exit(0)
 end
 
 -- The sheet's copy of the render. `url()` in a plugin sheet resolves against
