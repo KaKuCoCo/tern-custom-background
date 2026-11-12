@@ -27,6 +27,7 @@ local STEP = 0.05
 local DEFAULT_OPACITY = 0.30
 local DEFAULT_BARS = 0.35
 local DEFAULT_COMPOSER = 0.35
+local DEFAULT_POPUPS = 0.65
 
 -- Where the settings block opens: `beside` splits the pane it was asked from,
 -- so the window you are restyling stays in view while you change it. The other
@@ -101,18 +102,11 @@ local CLEAR_FILLS = [[
 .sf-col, .sf-card {
 	background-color: transparent !important;
 }
-/* A glimpse (the file preview card) and the Git file surface overlay other
-   panes' text. An opaque fill hid the picture there; a translucent page
-   colour over a blurred backdrop keeps the picture and blurs what is under
-   it past reading. */
-.tn-pane.glimpse, .gb-surface {
-	background-color: color-mix(in srgb, var(--page) 65%, transparent) !important;
-	backdrop-filter: blur(24px) !important;
-}
 ]]
 
--- The window's own surfaces darkened over the picture, from the Surfaces
--- page: the tab bar and status line, and omp's input box, which also
+-- The window's own surfaces tinted over the picture, from the Surfaces
+-- page: the tab bar and status line, the file preview and Git file surface
+-- (blurred, so what is under them stays hidden at any tint), and omp's input box, which also
 -- gets a drop shadow and a top highlight so it stands off the picture. The
 -- box is the dock's inner column, the one carrying the rounded frame; the
 -- outer one is wider by the dock's padding. Its selector outweighs
@@ -136,6 +130,16 @@ nav#tabbar, footer#statusline {
 }
 ]], box, box * 0.9))
 	end
+	-- A glimpse (the file preview card) and the Git file surface overlay other
+	-- panes' text. An opaque fill hid the picture there; a translucent page
+	-- colour over a blurred backdrop keeps it and blurs what is under it.
+	local popups = clamp(knum("popups", DEFAULT_POPUPS), 0, 1)
+	table.insert(parts, string.format([[
+.tn-pane.glimpse, .gb-surface {
+	background-color: color-mix(in srgb, var(--page) %d%%, transparent) !important;
+	backdrop-filter: blur(24px) !important;
+}
+]], math.floor(popups * 100 + 0.5)))
 	return table.concat(parts)
 end
 

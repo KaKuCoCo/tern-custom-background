@@ -2,6 +2,12 @@
 
 上游：[naraaalt/tern-custom-background](https://github.com/naraaalt/tern-custom-background)
 
+## 2026-11-12
+
+### Added
+- Surfaces 設定新增 Popups：調整檔案預覽與 Git 檔案面板的底色濃度。
+  - 原因：桌布暗又淡時，65% 的固定底色讓彈窗看起來像不透明，看不到桌布。
+
 ## 2026-11-10
 
 ### Added

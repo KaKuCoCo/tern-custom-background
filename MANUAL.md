@@ -97,6 +97,7 @@ plugin reload` does it straight away (see the engine's stamp below).
 | Hard pixel edges | on/off (`image-rendering: pixelated`) | off |
 | Header and footer | 0–100%, black over the tab bar and status line | 35% |
 | Input box | 0–100%, black fill and drop shadow on omp's input box | 35% |
+| Popups | 0–100%, page-colour tint over the blurred file preview and Git file surface | 65% |
 
 The Kernel, Matrix and Block size rows are disabled while the method that does
 not read them is running, and so are Character size, Ramp and Characters while
@@ -266,6 +267,12 @@ wallpaper off they go too.
   which carries the rounded frame. The outer column is wider by the dock's
   padding, and filling it paints past the frame. The selector also outweighs
   the cleared `.sf-col` fill above.
+- **Popups** tints the file preview card (`.tn-pane.glimpse`) and the Git
+  block's file surface (`.gb-surface`) with the page colour at x%, over
+  `backdrop-filter: blur(24px)`. Both are drawn over other panes' text, so
+  they cannot be left clear; the blur hides what is under them at any value,
+  including 0%. A dim picture (low Opacity, dark image) is nearly invisible
+  under the default 65% tint; lower the tint to let it show.
 
 These are Tern's own class names, not an API: a Tern release that renames
 them leaves the surfaces undarkened, and nothing else.

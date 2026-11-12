@@ -86,6 +86,7 @@ local DEFAULTS = {
 	pixelated = false,
 	bars = 0.35,
 	composer = 0.35,
+	popups = 0.65,
 	enabled = true,
 	claim = false,
 }
@@ -95,7 +96,7 @@ local KEYS = {
 	"pixelate", "smooth",
 	"palette", "colors", "extract", "extract_method", "scale", "cut",
 	"brightness", "contrast", "invert", "maxside", "animate", "frames",
-	"opacity", "fit", "pixelated", "bars", "composer", "enabled", "claim",
+	"opacity", "fit", "pixelated", "bars", "composer", "popups", "enabled", "claim",
 }
 
 -- The animation the render in hand came out as, written by the render loop
@@ -372,6 +373,7 @@ local function settings(): { [string]: any }
 	s.pixelated = kbool("pixelated", DEFAULTS.pixelated)
 	s.bars = clamp(knum("bars", DEFAULTS.bars), 0, 1)
 	s.composer = clamp(knum("composer", DEFAULTS.composer), 0, 1)
+	s.popups = clamp(knum("popups", DEFAULTS.popups), 0, 1)
 	s.enabled = kbool("enabled", DEFAULTS.enabled)
 	s.claim = kbool("claim", DEFAULTS.claim)
 	return s
@@ -1348,9 +1350,15 @@ local function rows_for(state: State): { { [string]: any } }
 				control = { k = "number", value = math.floor(s.composer * 100 + 0.5), min = 0, max = 100, step = 5, unit = "%" },
 			},
 			{
+				id = "popups",
+				label = "Popups",
+				hint = "Tints the file preview and the Git file surface. They are blurred over whatever is under them, so 0% still hides it.",
+				control = { k = "number", value = math.floor(s.popups * 100 + 0.5), min = 0, max = 100, step = 5, unit = "%" },
+			},
+			{
 				id = "reset-surfaces",
 				label = "Reset the surfaces",
-				hint = "Back to 35% on both.",
+				hint = "Back to 35% on the bars and the input box, 65% on popups.",
 				control = { k = "action", act = "reset-surfaces", label = "Reset" },
 			},
 		}
@@ -1417,6 +1425,8 @@ local function apply_change(state: State, item: string, value: any)
 		s.bars = clamp((n or 0) / 100, 0, 1)
 	elseif item == "composer" then
 		s.composer = clamp((n or 0) / 100, 0, 1)
+	elseif item == "popups" then
+		s.popups = clamp((n or 0) / 100, 0, 1)
 	else
 		return
 	end
@@ -1769,6 +1779,7 @@ local block: BlockDef<State> = {
 				local s = state.s
 				s.bars = DEFAULTS.bars
 				s.composer = DEFAULTS.composer
+				s.popups = DEFAULTS.popups
 				write_settings(s)
 				bump()
 				state.seen_rev = knum("rev", 0)
