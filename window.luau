@@ -130,11 +130,16 @@ nav#tabbar, footer#statusline {
 	-- A glimpse (the file preview card) and the Git file surface overlay other
 	-- panes' text. An opaque fill hid the picture there; a translucent page
 	-- colour over a blurred backdrop keeps it and blurs what is under it.
+	-- Tern also lays `.tn-gl-scrim` over the whole stage while a glimpse is
+	-- open, which tints the panes around the card; only the card should change.
 	local popups = clamp(knum("popups", DEFAULT_POPUPS), 0, 1)
 	table.insert(parts, string.format([[
 .tn-pane.glimpse, .gb-surface {
 	background-color: color-mix(in srgb, var(--page) %d%%, transparent) !important;
 	backdrop-filter: blur(24px) !important;
+}
+.tn-gl-scrim {
+	background-color: transparent !important;
 }
 ]], math.floor(popups * 100 + 0.5)))
 	return table.concat(parts)

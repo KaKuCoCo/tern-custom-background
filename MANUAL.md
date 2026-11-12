@@ -273,6 +273,8 @@ wallpaper off they go too.
   they cannot be left clear; the blur hides what is under them at any value,
   including 0%. A dim picture (low Opacity, dark image) is nearly invisible
   under the default 65% tint; lower the tint to let it show.
+  While a preview is open Tern also dims the whole stage with
+  `.tn-gl-scrim`; the sheet clears that fill, so only the card changes colour.
 
 These are Tern's own class names, not an API: a Tern release that renames
 them leaves the surfaces undarkened, and nothing else.
