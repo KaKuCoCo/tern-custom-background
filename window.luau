@@ -89,9 +89,12 @@ end
 -- the sheet clears them and the picture becomes the window's one background:
 -- the app's own colours stay in its text, borders and icons, which is what
 -- keeps it readable.
+-- `--tv-bg` is left alone: it is also the ink of reverse-video text, so a
+-- transparent one made selected text in programs that draw their own
+-- selection (Codex) invisible. The terminal grid is already see-through
+-- once `--panel` is cleared.
 local CLEAR_FILLS = [[
 :root {
-	--tv-bg: transparent !important;
 	--panel: transparent !important;
 	--card: transparent !important;
 	--code-bg: transparent !important;
