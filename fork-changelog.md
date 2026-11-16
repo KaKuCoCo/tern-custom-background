@@ -2,12 +2,6 @@
 
 上游：[naraaalt/tern-custom-background](https://github.com/naraaalt/tern-custom-background)
 
-## 2026-11-16
-
-### Fixed
-- Codex 等程式自己畫的反白選取，文字不再消失。
-  - 原因：桌布 sheet 把 `--tv-bg` 設成 `transparent`，而 reverse-video 的字色取自 `--tv-bg`，字變透明；移除該行後終端機底仍透明（`--panel` 已清除）。
-
 ## 2026-11-12
 
 ### Added
